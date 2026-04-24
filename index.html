@@ -3,144 +3,205 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Soneium Intelligence | 4everland Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;800&display=swap" rel="stylesheet"/>
+<title>Soneium Chain Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --bg: #030712; --surface: #0f172a; --border: #1e293b;
-    --accent: #38bdf8; --accent2: #818cf8; --text: #f1f5f9; --muted: #64748b;
+    --bg: #050810; --surface: #0b1120; --surface2: #111a2e; --border: #1e2d4a;
+    --accent: #00d4ff; --accent2: #7b4fff; --accent3: #ff4f9a; --green: #00ffb3;
+    --text: #e8f0ff; --muted: #4a6080; --glow: 0 0 20px rgba(0,212,255,0.3);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-  .container { width: 100%; max-width: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-  h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; text-align: center; background: linear-gradient(to right, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .desc { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; font-family: 'Space Mono'; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; line-height: 1.5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
   
-  .input-wrap { position: relative; margin-bottom: 16px; }
-  input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px; color: #fff; font-family: 'Space Mono'; font-size: 13px; outline: none; transition: border-color 0.2s; }
-  input:focus { border-color: var(--accent); }
-  
-  button { width: 100%; background: #fff; color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
-  button:hover { opacity: 0.9; }
-  button:active { transform: scale(0.98); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Header & Search */
+  header { text-align: center; margin-bottom: 40px; }
+  .logo-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 6px 16px; font-family: 'Space Mono'; font-size: 11px; color: var(--accent); letter-spacing: 2px; margin-bottom: 20px; }
+  .search-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 40px; position: relative; }
+  .search-row { display: flex; gap: 12px; }
+  input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; color: #fff; font-family: 'Space Mono'; outline: none; }
+  input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+  .btn-analyze { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; border-radius: 10px; padding: 14px 28px; font-weight: 700; cursor: pointer; }
 
-  #results { display: none; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px; animation: slideUp 0.3s ease-out; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .stat-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-  .stat-label { color: var(--muted); font-family: 'Space Mono'; }
-  .stat-value { font-weight: 700; color: var(--accent); }
-  
-  .error { color: #f87171; font-size: 12px; margin-top: 12px; text-align: center; display: none; background: rgba(248, 113, 113, 0.1); padding: 10px; border-radius: 8px; }
-  #loader { display: none; text-align: center; margin-top: 16px; font-size: 12px; color: var(--accent); font-family: 'Space Mono'; }
+  /* Grid & Cards */
+  .section-title { font-size: 11px; letter-spacing: 3px; color: var(--muted); font-family: 'Space Mono'; text-transform: uppercase; margin: 32px 0 16px; display: flex; align-items: center; gap: 10px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 14px; border-top: 2px solid var(--accent); transition: 0.3s; }
+  .stat-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .stat-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono'; margin-bottom: 8px; }
+  .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--muted); font-family: 'Space Mono'; margin-top: 4px; }
+
+  /* Charts & Lists */
+  .month-bars { display: flex; gap: 6px; align-items: flex-end; height: 80px; margin-top: 16px; }
+  .month-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 2px; transition: 0.5s; }
+  .data-table { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 24px; font-family: 'Space Mono'; font-size: 12px; border-collapse: collapse; }
+  .data-table th { background: var(--surface2); padding: 12px; text-align: left; color: var(--muted); font-size: 10px; }
+  .data-table td { padding: 12px; border-bottom: 1px solid var(--border); }
+  .tx-dir { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .dir-in { background: rgba(0,255,179,0.1); color: var(--green); }
+  .dir-out { background: rgba(255,79,154,0.1); color: var(--accent3); }
+
+  #loader { display: none; text-align: center; padding: 40px; color: var(--accent); font-family: 'Space Mono'; }
+  .risk-badge { display: inline-flex; align-items: center; gap: 10px; background: var(--surface2); padding: 12px 20px; border-radius: 10px; margin-top: 20px; font-family: 'Space Mono'; font-size: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Soneium Analytica</h1>
-  <p class="desc">Mainnet Intelligence Explorer</p>
+  <header>
+    <div class="logo-badge">SONEIUM NETWORK · INTELLIGENCE</div>
+    <h1>Chain Analytics Dashboard</h1>
+  </header>
 
-  <div class="input-wrap">
-    <input type="text" id="address" placeholder="Enter Wallet Address (0x...)" spellcheck="false">
+  <div class="search-wrap">
+    <div class="search-row">
+      <input type="text" id="addrInput" placeholder="Enter EVM Address (0x...)" maxlength="42">
+      <button class="btn-analyze" onclick="analyze()">Analyze →</button>
+    </div>
   </div>
-  <button id="mainBtn" onclick="analyze()">Search Network</button>
-  
-  <div id="loader">Scanning Soneium Mainnet...</div>
-  <div id="error" class="error"></div>
 
-  <div id="results">
-    <div class="stat-row">
-      <span class="stat-label">Balance</span>
-      <span id="bal" class="stat-value">0.00 ETH</span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">Identity</span>
-      <span id="type" class="stat-value">-</span>
-    </div>
-    <div style="margin-top: 16px;">
-        <p class="stat-label" style="font-size: 11px; margin-bottom: 8px;">RECENT ACTIVITY</p>
-        <div id="txs" style="font-size: 12px; font-family: 'Space Mono';"></div>
+  <div id="loader">INITIALIZING ON-CHAIN SCAN...</div>
+
+  <div id="results" style="display:none;">
+    <div class="section-title">// Core Metrics</div>
+    <div class="stats-grid" id="coreStats"></div>
+
+    <div class="section-title">// Volume & Gas</div>
+    <div class="stats-grid" id="volStats"></div>
+
+    <div class="section-title">// Activity Timeline</div>
+    <div class="month-bars" id="monthBars"></div>
+
+    <div class="section-title">// Recent Transactions</div>
+    <table class="data-table" id="txTable">
+        <thead><tr><th>HASH</th><th>DIR</th><th>VALUE</th><th>DATE</th><th>STATUS</th></tr></thead>
+        <tbody id="txBody"></tbody>
+    </table>
+
+    <div class="risk-badge">
+      <div class="dot" id="riskDot"></div>
+      <span id="riskLabel">Calculating Activity Score...</span>
     </div>
   </div>
 </div>
 
 <script>
-// We use Tenderly or DRPC as they handle browser CORS better than the raw RPC
 const RPC_URL = "https://soneium.drpc.org"; 
 const EXPLORER_API = "https://soneium.blockscout.com/api"; 
 
 async function analyze() {
-    const addr = document.getElementById('address').value.trim();
-    const btn = document.getElementById('mainBtn');
-    const err = document.getElementById('error');
-    const res = document.getElementById('results');
+    const addr = document.getElementById('addrInput').value.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) return alert("Invalid Address");
+
     const loader = document.getElementById('loader');
-
-    if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) {
-        showErr("Please enter a valid 42-character address.");
-        return;
-    }
-
-    // Reset UI
-    btn.disabled = true;
-    err.style.display = 'none';
-    res.style.display = 'none';
+    const results = document.getElementById('results');
     loader.style.display = 'block';
+    results.style.display = 'none';
 
     try {
-        // Parallel fetching to avoid timeouts on 4everland
-        const [balHex, codeHex, txData] = await Promise.all([
-            callRPC("eth_getBalance", [addr, "latest"]),
-            callRPC("eth_getCode", [addr, "latest"]),
-            fetch(`${EXPLORER_API}?module=account&action=txlist&address=${addr}&offset=3`).then(r => r.json())
+        const [balHex, isContractHex, txData] = await Promise.all([
+            rpcCall("eth_getBalance", [addr, "latest"]),
+            rpcCall("eth_getCode", [addr, "latest"]),
+            fetch(`${EXPLORER_API}?module=account&action=txlist&address=${addr}&offset=50`).then(r => r.json())
         ]);
 
-        // 1. Balance
-        const balance = parseInt(balHex, 16) / 1e18;
-        document.getElementById('bal').innerText = balance.toFixed(4) + " ETH";
+        const txs = txData.result || [];
+        const ethBal = parseInt(balHex, 16) / 1e18;
+        const isContract = isContractHex !== '0x' && isContractHex !== '0x0';
 
-        // 2. Account Type
-        document.getElementById('type').innerText = (codeHex === '0x' || codeHex === '0x0') ? "Wallet (EOA)" : "Contract";
+        // --- MATH ENGINE ---
+        const sentTx = txs.filter(t => t.from.toLowerCase() === addr.toLowerCase());
+        let totalVol = 0, gasSpent = 0;
+        const monthlyData = {};
 
-        // 3. Transactions
-        const txDiv = document.getElementById('txs');
-        txDiv.innerHTML = "";
-        if (txData.result && Array.isArray(txData.result)) {
-            txData.result.slice(0, 3).forEach(tx => {
-                txDiv.innerHTML += `<div style="margin-bottom:6px; color:var(--muted)">TX: ${tx.hash.substring(0,10)}... <span style="color:var(--accent2)">${(tx.value/1e18).toFixed(3)} ETH</span></div>`;
-            });
-        } else {
-            txDiv.innerHTML = "No recent activity found.";
-        }
+        txs.forEach(t => {
+            totalVol += (t.value / 1e18);
+            if(t.from.toLowerCase() === addr.toLowerCase()) {
+                gasSpent += (t.gasUsed * t.gasPrice) / 1e18;
+            }
+            const date = new Date(t.timeStamp * 1000);
+            const key = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear().toString().slice(-2)}`;
+            monthlyData[key] = (monthlyData[key] || 0) + 1;
+        });
+
+        // --- RENDER CORE STATS ---
+        document.getElementById('coreStats').innerHTML = `
+            ${renderCard("Balance", ethBal.toFixed(4) + " ETH", isContract ? "Smart Contract" : "EOA Wallet")}
+            ${renderCard("Total TXs", txs.length, `${sentTx.length} Sent / ${txs.length - sentTx.length} Recv`)}
+            ${renderCard("Success Rate", Math.round((txs.filter(t => t.isError === '0').length / txs.length) * 100 || 0) + "%", "Based on last 50 txs")}
+            ${renderCard("Active Days", new Set(txs.map(t => new Date(t.timeStamp*1000).toDateString())).size, "Unique days active")}
+        `;
+
+        document.getElementById('volStats').innerHTML = `
+            ${renderCard("Total Volume", totalVol.toFixed(2) + " ETH", "Sum of all movements", "var(--accent2)")}
+            ${renderCard("Gas Contributed", gasSpent.toFixed(6) + " ETH", "Total fees paid", "var(--accent3)")}
+        `;
+
+        // --- RENDER CHARTS ---
+        const barWrap = document.getElementById('monthBars');
+        barWrap.innerHTML = "";
+        const maxVal = Math.max(...Object.values(monthlyData), 1);
+        Object.entries(monthlyData).slice(-10).forEach(([month, count]) => {
+            const h = (count / maxVal) * 80;
+            barWrap.innerHTML += `<div class="month-bar" style="height:${h}px" title="${month}: ${count} txs"></div>`;
+        });
+
+        // --- RENDER TX TABLE ---
+        const tbody = document.getElementById('txBody');
+        tbody.innerHTML = "";
+        txs.slice(0, 10).forEach(t => {
+            const isOut = t.from.toLowerCase() === addr.toLowerCase();
+            tbody.innerHTML += `
+                <tr>
+                    <td style="color:var(--accent)">${t.hash.slice(0,10)}...</td>
+                    <td><span class="tx-dir ${isOut?'dir-out':'dir-in'}">${isOut?'OUT':'IN'}</span></td>
+                    <td>${(t.value/1e18).toFixed(3)} ETH</td>
+                    <td style="color:var(--muted)">${new Date(t.timeStamp*1000).toLocaleDateString()}</td>
+                    <td style="color:${t.isError==='0'? 'var(--green)':'var(--accent3)'}">${t.isError==='0'?'OK':'FAIL'}</td>
+                </tr>`;
+        });
+
+        // --- ACTIVITY SCORE ---
+        let score = 0;
+        if (txs.length > 20) score += 3; else if (txs.length > 5) score += 1;
+        if (gasSpent > 0.01) score += 3;
+        if (totalVol > 1) score += 3;
+        
+        const dot = document.getElementById('riskDot');
+        const label = document.getElementById('riskLabel');
+        if (score > 6) { dot.style.background = 'var(--green)'; label.innerText = `Power User Score: ${score}/9 (High)`; }
+        else if (score > 3) { dot.style.background = 'var(--accent)'; label.innerText = `Active User Score: ${score}/9 (Medium)`; }
+        else { dot.style.background = 'var(--muted)'; label.innerText = `Light User Score: ${score}/9 (Low)`; }
 
         loader.style.display = 'none';
-        res.style.display = 'block';
+        results.style.display = 'block';
+
     } catch (e) {
         console.error(e);
-        showErr("Connection Refused. This is usually caused by browser security settings or RPC downtime.");
-    } finally {
-        btn.disabled = false;
-        loader.style.display = 'none';
+        loader.innerText = "ERROR: Failed to connect to Soneium. Check Console.";
     }
 }
 
-async function callRPC(method, params) {
-    const response = await fetch(RPC_URL, {
+async function rpcCall(method, params) {
+    const r = await fetch(RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
     });
-    const json = await response.json();
-    if (json.error) throw new Error(json.error.message);
-    return json.result;
+    const d = await r.json();
+    return d.result;
 }
 
-function showErr(msg) {
-    const err = document.getElementById('error');
-    err.innerText = msg;
-    err.style.display = 'block';
+function renderCard(label, val, sub, color) {
+    return `<div class="stat-card" style="${color?'border-top-color:'+color:''}">
+        <div class="stat-label">${label}</div>
+        <div class="stat-value">${val}</div>
+        <div class="stat-sub">${sub}</div>
+    </div>`;
 }
 </script>
 </body>
