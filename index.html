@@ -1,73 +1,832 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soneium Checkerd App</title>
-    <style>
-        /* Mobile responsive design */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        @media (max-width: 600px) {
-            body { font-size: 14px; }
-        }
-        .loading { display: none; }
-        .error { color: red; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Soneium Chain Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #050810;
+    --surface: #0b1120;
+    --surface2: #111a2e;
+    --border: #1e2d4a;
+    --accent: #00d4ff;
+    --accent2: #7b4fff;
+    --accent3: #ff4f9a;
+    --green: #00ffb3;
+    --text: #e8f0ff;
+    --muted: #4a6080;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header { text-align: center; margin-bottom: 50px; }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+
+  .search-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+
+  .search-row { display: flex; gap: 12px; }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .btn-analyze {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .btn-analyze:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--text); word-break: break-all;}
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .address-card {
+    background: var(--surface2);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--accent);
+  }
+
+  .addr-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); flex-shrink: 0; }
+
+  #results { display: none; }
+  #results.active { display: block; }
+
+  .loading { display: none; text-align: center; margin-bottom: 20px; color: var(--accent); }
+  .loading.active { display: block; }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 15px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 1px; }
+  .loading-step { font-size: 11px; color: var(--muted); margin-top: 10px; min-height: 16px; }
+
+  .error-box { 
+    display: none; 
+    color: var(--accent3); 
+    padding: 15px; 
+    background: rgba(255, 79, 154, 0.1); 
+    border: 1px solid rgba(255, 79, 154, 0.3);
+    border-radius: 8px; 
+    margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  .error-box.active { display: block; }
+
+  .tx-list { background: var(--surface); border-radius: 16px; margin-top: 30px; border: 1px solid var(--border); overflow: hidden; }
+  
+  .tx-header {
+    display: grid; 
+    grid-template-columns: 1.5fr 1fr 1fr 1fr; 
+    gap: 10px; 
+    padding: 12px 15px; 
+    background: var(--surface2); 
+    border-bottom: 1px solid var(--border);
+    font-size: 10px; 
+    color: var(--muted); 
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+  }
+
+  .tx-row { 
+    display: grid; 
+    grid-template-columns: 1.5fr 1fr 1fr 1fr; 
+    gap: 10px;
+    padding: 12px 15px; 
+    border-bottom: 1px solid var(--border); 
+    font-size: 11px; 
+    font-family: 'Space Mono';
+    transition: background 0.15s;
+  }
+
+  .tx-row:last-child { border-bottom: none; }
+  .tx-row:hover { background: rgba(0,212,255,0.03); }
+
+  .tx-hash { color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx-dir { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+  .tx-dir.in { background: rgba(0,255,179,0.1); color: var(--green); }
+  .tx-dir.out { background: rgba(255,79,154,0.1); color: var(--accent3); }
+  .tx-val { color: var(--text); }
+  .tx-muted { color: var(--muted); }
+
+  .section-title { margin-top: 24px; margin-bottom: 16px; font-size: 10px; color: var(--muted); letter-spacing: 2px; font-family: 'Space Mono', monospace; text-transform: uppercase; }
+
+  @media (max-width: 640px) {
+    .search-row { flex-direction: column; }
+    .btn-analyze { width: 100%; }
+    .address-card { flex-direction: column; }
+    .tx-header, .tx-row { grid-template-columns: 1fr 1fr; }
+    .tx-header > :nth-child(3), .tx-header > :nth-child(4),
+    .tx-row > :nth-child(3), .tx-row > :nth-child(4) { display: none; }
+  }
+</style>
 </head>
 <body>
-    <h1>Soneium Checkerd App</h1>
-    <div class="loading" id="loading">Loading...</div>
-    <div class="error" id="error" style="display: none;"></div>
-    <script>
-        const CONFIG = {
-            REQUEST_TIMEOUT: 12000, // 12 seconds
-            MAX_TRANSACTIONS: 1000,
-            API_ENDPOINT: 'https://api.example.com',
-        };
 
-        async function fetchData() {
-            let retries = 0;
-            const maxRetries = 2;
-            const backoff = (retry) => Math.pow(2, retry) * 1000; // Exponential backoff
+<div class="container">
+  <header>
+    <div class="logo-badge">SONEIUM NETWORK · L2 ANALYZER</div>
+    <h1>Chain Intelligence</h1>
+  </header>
 
-            while (true) {
-                try {
-                    const response = await Promise.race([
-                        fetch(CONFIG.API_ENDPOINT),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), CONFIG.REQUEST_TIMEOUT))
-                    ]);
+  <div class="search-wrap">
+    <div class="search-row">
+      <input type="text" id="addrInput" placeholder="Enter Soneium Address (0x...)" maxlength="42">
+      <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">Analyze →</button>
+    </div>
+  </div>
 
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
+  <div class="error-box" id="errorBox"></div>
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">⚡ FETCHING CHAIN DATA</div>
+    <div class="loading-step" id="loadingStep">Connecting to Soneium RPC...</div>
+  </div>
 
-                    // Validate JSON-RPC structure
-                    if (!data.jsonrpc || !data.result) {
-                        throw new Error('Invalid JSON-RPC structure');
-                    }
+  <div id="results">
+    <div class="address-card">
+      <canvas id="addrAvatar" class="addr-avatar" width="48" height="48"></canvas>
+      <div>
+        <div style="font-size: 10px; color: var(--muted);">TARGET ADDRESS</div>
+        <div id="displayAddr" style="font-family: 'Space Mono'; color: var(--accent); word-break: break-all;"></div>
+      </div>
+    </div>
 
-                    // Process data...
-                    console.log(data.result);
-                    break; // Exit loop on success
-                } catch (error) {
-                    console.error('Fetch error: ', error);
-                    retries++;
-                    if (retries > maxRetries) {
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('error').innerText = 'An error occurred: ' + error.message;
-                        document.getElementById('error').style.display = 'block';
-                        break;
-                    }
-                    await new Promise(resolve => setTimeout(resolve, backoff(retries)));
-                }
+    <div class="section-title">// Core Metrics</div>
+    <div class="stats-grid" id="coreStats"></div>
+
+    <div class="section-title">// Volume Breakdown</div>
+    <div class="stats-grid" id="volumeStats"></div>
+    
+    <div class="section-title">// Recent Transactions</div>
+    <div class="tx-list" id="txList"></div>
+
+    <div style="margin-top: 24px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted);">
+      <span id="riskLabel">✓ Analysis Complete</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+    RPC: "https://rpc.soneium.org",
+    EXPLORER_API: "https://explorer.soneium.org/api",
+    ETH_PRICE_API: "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+    REQUEST_TIMEOUT: 12000,
+    RETRY_ATTEMPTS: 2,
+    WEI_PER_ETH: 1e18,
+    SECONDS_PER_DAY: 86400,
+    MAX_TRANSACTION_FETCH: 1000,
+    TX_DISPLAY_LIMIT: 20
+};
+
+function isValidAddress(addr) {
+    return /^0x[0-9a-fA-F]{40}$/.test(addr);
+}
+
+function shortAddress(addr) {
+    return addr.slice(0, 6) + '...' + addr.slice(-4);
+}
+
+function formatNumber(num, decimals = 2) {
+    if (num === undefined || num === null || isNaN(num)) return '—';
+    if (num >= 1e9) return (num / 1e9).toFixed(decimals) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(decimals) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+    return num.toFixed ? num.toFixed(decimals) : String(num);
+}
+
+function weiToEth(wei) {
+    if (!wei) return 0;
+    try {
+        return Number(BigInt(wei)) / CONFIG.WEI_PER_ETH;
+    } catch (e) {
+        console.error('Wei conversion error:', e);
+        return 0;
+    }
+}
+
+function formatDate(timestamp) {
+    if (!timestamp) return '—';
+    try {
+        const d = new Date(Number(timestamp) * 1000);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+        return '—';
+    }
+}
+
+function timeAgo(timestamp) {
+    if (!timestamp) return '—';
+    try {
+        const seconds = Math.floor((Date.now() / 1000) - Number(timestamp));
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+        if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+        return Math.floor(seconds / 86400) + 'd ago';
+    } catch {
+        return '—';
+    }
+}
+
+function showLoading(active = true) {
+    const el = document.getElementById('loading');
+    if (active) {
+        el.classList.add('active');
+    } else {
+        el.classList.remove('active');
+    }
+}
+
+function setLoadingStep(message) {
+    const el = document.getElementById('loadingStep');
+    if (el) el.textContent = message;
+}
+
+function showError(message) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠ ' + message;
+    box.classList.add('active');
+}
+
+function hideError() {
+    document.getElementById('errorBox').classList.remove('active');
+}
+
+function createStatCard(icon, label, value, subtitle = '') {
+    let html = `<div class="stat-card">
+                  <span style="font-size: 18px; margin-bottom: 8px; display: block;">${icon}</span>
+                  <div class="stat-label">${label}</div>
+                  <div class="stat-value">${value}</div>`;
+    if (subtitle) {
+        html += `<div class="stat-sub">${subtitle}</div>`;
+    }
+    html += `</div>`;
+    return html;
+}
+
+function drawAvatar(canvas, addr) {
+    if (!canvas || !addr) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const size = 48;
+    ctx.clearRect(0, 0, size, size);
+    
+    const seed = addr.toLowerCase().replace('0x', '');
+    const colors = ['#00d4ff', '#7b4fff', '#ff4f9a', '#00ffb3', '#ffd700'];
+    const colorIndex = parseInt(seed.slice(0, 2), 16) % colors.length;
+    const color = colors[colorIndex];
+    
+    ctx.fillStyle = '#111a2e';
+    ctx.fillRect(0, 0, size, size);
+    
+    ctx.fillStyle = color;
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+            const idx = (i * 5 + j) % seed.length;
+            const bit = parseInt(seed[idx], 16) & 1;
+            if (bit) {
+                ctx.fillRect(j * (size / 5) + 1, i * (size / 5) + 1, (size / 5) - 2, (size / 5) - 2);
             }
         }
+    }
+}
 
-        document.addEventListener('DOMContentLoaded', fetchData);
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                fetchData(); // Trigger fetch on Enter key
+async function fetchWithTimeout(url, options = {}, timeoutMs = CONFIG.REQUEST_TIMEOUT) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+async function rpcRequest(method, params = [], retries = CONFIG.RETRY_ATTEMPTS) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const response = await fetchWithTimeout(
+                CONFIG.RPC,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: Date.now(),
+                        method: method,
+                        params: params
+                    })
+                },
+                CONFIG.REQUEST_TIMEOUT
+            );
+            
+            const json = await response.json();
+            
+            if (!json || typeof json !== 'object') {
+                throw new Error('Invalid JSON-RPC response structure');
+            }
+            
+            if (json.error) {
+                throw new Error(`RPC Error: ${json.error.message || 'Unknown error'}`);
+            }
+            
+            if (json.result === undefined) {
+                throw new Error('RPC result is undefined');
+            }
+            
+            return json.result;
+            
+        } catch (error) {
+            console.error(`RPC attempt ${attempt + 1}/${retries + 1} failed:`, error);
+            
+            if (attempt === retries) {
+                throw new Error(`Failed after ${retries + 1} attempts: ${error.message}`);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+    }
+}
+
+async function getBalance(addr) {
+    try {
+        setLoadingStep('Fetching ETH balance...');
+        const hex = await rpcRequest('eth_getBalance', [addr, 'latest']);
+        return weiToEth(hex);
+    } catch (error) {
+        console.error('Error fetching balance:', error);
+        return 0;
+    }
+}
+
+async function isContractAddress(addr) {
+    try {
+        setLoadingStep('Checking account type...');
+        const code = await rpcRequest('eth_getCode', [addr, 'latest']);
+        return code && code !== '0x' && code !== '0x0';
+    } catch (error) {
+        console.error('Error checking contract status:', error);
+        return false;
+    }
+}
+
+async function fetchTransactionPage(addr, page = 1, offset = 50) {
+    try {
+        const url = `${CONFIG.EXPLORER_API}?module=account&action=txlist&address=${addr}&page=${page}&offset=${offset}&sort=desc`;
+        const response = await fetchWithTimeout(url, {}, CONFIG.REQUEST_TIMEOUT);
+        const data = await response.json();
+        
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid API response structure');
+        }
+        
+        if (data.status === '1' && Array.isArray(data.result)) {
+            return data.result;
+        } else if (data.status === '0') {
+            return [];
+        } else {
+            throw new Error(`API Error: ${data.message || 'Unknown error'}`);
+        }
+        
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        return [];
+    }
+}
+
+async function fetchAllTransactions(addr) {
+    try {
+        let allTransactions = [];
+        let page = 1;
+        let totalFetched = 0;
+        
+        setLoadingStep('Fetching transactions (page 1)...');
+        
+        while (page <= 10) {
+            const batch = await fetchTransactionPage(addr, page, 100);
+            
+            if (!batch || batch.length === 0) {
+                break;
+            }
+            
+            allTransactions = allTransactions.concat(batch);
+            totalFetched = allTransactions.length;
+            
+            if (totalFetched > CONFIG.MAX_TRANSACTION_FETCH) {
+                allTransactions = allTransactions.slice(0, CONFIG.MAX_TRANSACTION_FETCH);
+                break;
+            }
+            
+            setLoadingStep(`Fetched ${totalFetched} transactions (page ${page})...`);
+            
+            if (batch.length < 100) {
+                break;
+            }
+            
+            page++;
+        }
+        
+        return allTransactions;
+        
+    } catch (error) {
+        console.error('Error fetching all transactions:', error);
+        return [];
+    }
+}
+
+async function fetchEthPrice() {
+    try {
+        setLoadingStep('Fetching ETH price...');
+        const response = await fetchWithTimeout(CONFIG.ETH_PRICE_API, {}, CONFIG.REQUEST_TIMEOUT);
+        const data = await response.json();
+        
+        if (data && data.ethereum && typeof data.ethereum.usd === 'number') {
+            return data.ethereum.usd;
+        }
+        
+        return 0;
+        
+    } catch (error) {
+        console.error('Error fetching ETH price:', error);
+        return 0;
+    }
+}
+
+function computeAnalytics(addr, transactions, balance, ethPrice) {
+    try {
+        const txs = Array.isArray(transactions) ? transactions : [];
+        const totalTx = txs.length;
+        
+        const sentTx = txs.filter(t => t && t.from && t.from.toLowerCase() === addr.toLowerCase());
+        const recvTx = txs.filter(t => t && t.to && t.to.toLowerCase() === addr.toLowerCase());
+        
+        let totalVolume = 0;
+        let sentVolume = 0;
+        let recvVolume = 0;
+        
+        txs.forEach(t => {
+            if (!t || !t.value) return;
+            const value = weiToEth(t.value);
+            totalVolume += value;
+            if (t.from && t.from.toLowerCase() === addr.toLowerCase()) {
+                sentVolume += value;
+            } else if (t.to && t.to.toLowerCase() === addr.toLowerCase()) {
+                recvVolume += value;
             }
         });
-    </script>
+        
+        let gasSpent = 0;
+        sentTx.forEach(t => {
+            if (t && t.gasUsed && t.gasPrice) {
+                gasSpent += weiToEth(BigInt(t.gasUsed) * BigInt(t.gasPrice));
+            }
+        });
+        
+        const activeDays = new Set();
+        const monthMap = {};
+        
+        txs.forEach(t => {
+            if (t && t.timeStamp) {
+                const date = new Date(Number(t.timeStamp) * 1000);
+                const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                activeDays.add(dayKey);
+                
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthMap[monthKey] = (monthMap[monthKey] || 0) + 1;
+            }
+        });
+        
+        const timestamps = txs
+            .map(t => t && t.timeStamp ? Number(t.timeStamp) : 0)
+            .filter(ts => ts > 0)
+            .sort((a, b) => a - b);
+        
+        const firstTx = timestamps.length ? formatDate(timestamps[0]) : '—';
+        const lastTx = timestamps.length ? formatDate(timestamps[timestamps.length - 1]) : '—';
+        
+        const successTx = txs.filter(t => !t || t.isError === '0' || t.isError === undefined).length;
+        const successRate = totalTx ? Math.round((successTx / totalTx) * 100) : 0;
+        
+        const contractInteractions = sentTx.filter(t => t && t.input && t.input.length > 10).length;
+        
+        return {
+            totalTx,
+            sentTx: sentTx.length,
+            recvTx: recvTx.length,
+            totalVolume,
+            sentVolume,
+            recvVolume,
+            gasSpent,
+            activeDays: activeDays.size,
+            activeMonths: Object.keys(monthMap).length,
+            firstTx,
+            lastTx,
+            successRate,
+            contractInteractions,
+            monthMap,
+            avgPerDay: activeDays.size ? (totalTx / activeDays.size).toFixed(1) : 0
+        };
+    } catch (error) {
+        console.error('Error computing analytics:', error);
+        return null;
+    }
+}
+
+function renderResults(addr, analytics, isContract, ethPrice) {
+    if (!analytics) {
+        showError('Failed to compute analytics. Please try again.');
+        return;
+    }
+    
+    try {
+        drawAvatar(document.getElementById('addrAvatar'), addr);
+        document.getElementById('displayAddr').textContent = addr;
+        
+        const coreHtml = [
+            createStatCard('📊', 'Total Transactions', analytics.totalTx.toLocaleString(), 
+                          `${analytics.sentTx} sent · ${analytics.recvTx} received`),
+            createStatCard('📅', 'Active Days', analytics.activeDays.toLocaleString(), 
+                          `${analytics.avgPerDay} tx/day avg`),
+            createStatCard('🗓️', 'Active Months', analytics.activeMonths, 
+                          `First: ${analytics.firstTx} · Last: ${analytics.lastTx}`),
+            createStatCard('✅', 'Success Rate', analytics.successRate + '%', 
+                          `${Math.round(analytics.successRate * analytics.totalTx / 100)} successful txs`),
+            createStatCard('💰', 'ETH Balance', balance.toFixed(4) + ' ETH', 
+                          ethPrice ? `≈ $${(balance * ethPrice).toFixed(2)}` : ''),
+            createStatCard('⛽', 'Gas Spent', analytics.gasSpent.toFixed(4) + ' ETH', 
+                          ethPrice ? `≈ $${(analytics.gasSpent * ethPrice).toFixed(2)}` : ''),
+            createStatCard('🔗', 'Contract Calls', analytics.contractInteractions.toLocaleString(), 
+                          'Interactions with contracts'),
+            createStatCard('🛡️', 'Account Type', isContract ? 'CONTRACT' : 'EOA WALLET', 
+                          isContract ? 'Smart contract' : 'External owned account')
+        ].join('');
+        
+        document.getElementById('coreStats').innerHTML = coreHtml;
+        
+        const volumeHtml = [
+            createStatCard('💎', 'Total Volume', analytics.totalVolume.toFixed(4) + ' ETH', 
+                          ethPrice ? `≈ $${formatNumber(analytics.totalVolume * ethPrice, 0)}` : ''),
+            createStatCard('📤', 'Sent Volume', analytics.sentVolume.toFixed(4) + ' ETH', 
+                          ethPrice ? `≈ $${formatNumber(analytics.sentVolume * ethPrice, 0)}` : ''),
+            createStatCard('📥', 'Received Volume', analytics.recvVolume.toFixed(4) + ' ETH', 
+                          ethPrice ? `≈ $${formatNumber(analytics.recvVolume * ethPrice, 0)}` : ''),
+            createStatCard('💵', 'USD Value', ethPrice ? `$${formatNumber(analytics.totalVolume * ethPrice, 0)}` : '—', 
+                          ethPrice ? `@ $${ethPrice.toLocaleString()}/ETH` : '')
+        ].join('');
+        
+        document.getElementById('volumeStats').innerHTML = volumeHtml;
+        
+    } catch (error) {
+        console.error('Error rendering results:', error);
+        showError('Failed to render results. Please try again.');
+    }
+}
+
+function renderTransactions(addr, transactions) {
+    try {
+        const txList = document.getElementById('txList');
+        const recentTx = Array.isArray(transactions) ? transactions.slice(0, CONFIG.TX_DISPLAY_LIMIT) : [];
+        
+        let html = `<div class="tx-header">
+                      <span>TX HASH</span>
+                      <span>DIRECTION</span>
+                      <span>VALUE (ETH)</span>
+                      <span>TIME</span>
+                    </div>`;
+        
+        if (recentTx.length === 0) {
+            html += `<div style="padding: 20px; text-align: center; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px;">
+                       No transactions found for this address.
+                     </div>`;
+        } else {
+            recentTx.forEach(tx => {
+                if (!tx) return;
+                
+                const isOutgoing = tx.from && tx.from.toLowerCase() === addr.toLowerCase();
+                const isIncoming = tx.to && tx.to.toLowerCase() === addr.toLowerCase();
+                
+                let direction = '—';
+                let dirClass = '';
+                
+                if (isOutgoing && isIncoming) {
+                    direction = 'SELF';
+                    dirClass = 'self';
+                } else if (isOutgoing) {
+                    direction = 'OUT';
+                    dirClass = 'out';
+                } else if (isIncoming) {
+                    direction = 'IN';
+                    dirClass = 'in';
+                }
+                
+                const value = weiToEth(tx.value || '0').toFixed(4);
+                const time = timeAgo(tx.timeStamp);
+                const hash = tx.hash ? shortAddress(tx.hash) : '—';
+                
+                html += `<div class="tx-row">
+                          <span class="tx-hash" title="${tx.hash || ''}">${hash}</span>
+                          <span class="tx-dir ${dirClass}">${direction}</span>
+                          <span class="tx-val">${value}</span>
+                          <span class="tx-muted">${time}</span>
+                        </div>`;
+            });
+        }
+        
+        txList.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error rendering transactions:', error);
+    }
+}
+
+async function analyze() {
+    const addr = document.getElementById('addrInput').value.trim();
+    hideError();
+    
+    if (!isValidAddress(addr)) {
+        showError('Invalid Soneium address. Must be 0x followed by 40 hex characters.');
+        return;
+    }
+    
+    document.getElementById('results').classList.remove('active');
+    showLoading(true);
+    document.getElementById('analyzeBtn').disabled = true;
+    
+    try {
+        setLoadingStep('Validating address...');
+        
+        const [balance, isContract, ethPrice, transactions] = await Promise.allSettled([
+            getBalance(addr),
+            isContractAddress(addr),
+            fetchEthPrice(),
+            fetchAllTransactions(addr)
+        ]);
+        
+        setLoadingStep('Computing analytics...');
+        
+        const balanceValue = balance.status === 'fulfilled' ? balance.value : 0;
+        const isContractValue = isContract.status === 'fulfilled' ? isContract.value : false;
+        const ethPriceValue = ethPrice.status === 'fulfilled' ? ethPrice.value : 0;
+        const transactionsValue = transactions.status === 'fulfilled' ? transactions.value : [];
+        
+        const analytics = computeAnalytics(addr, transactionsValue, balanceValue, ethPriceValue);
+        
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('results').classList.add('active');
+        
+        renderResults(addr, analytics, isContractValue, ethPriceValue);
+        renderTransactions(addr, transactionsValue);
+        
+        document.getElementById('riskLabel').textContent = 
+            `✓ Analysis Complete · ${transactionsValue.length} transactions analyzed · Last updated: ${new Date().toLocaleTimeString()}`;
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        showError(`Analysis failed: ${error.message || 'Unknown error occurred'}`);
+    } finally {
+        showLoading(false);
+        document.getElementById('analyzeBtn').disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('addrInput');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyze();
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>
